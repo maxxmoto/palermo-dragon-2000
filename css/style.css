@@ -142,38 +142,56 @@ body {
 
 /* === НАВИГАЦИЯ === */
 nav {
-    background: #f00; display: flex; border-top: 4px solid var(--cg);
-    height: 60px; position: sticky; bottom: 0; z-index: 1000;
+    display: flex; gap: 8px; padding: 0 10px;
+    height: 56px; position: sticky; bottom: 0; z-index: 1000;
+    align-items: center; justify-content: center;
 }
 .n-btn {
-    flex: 1; border: none; background: none; color: #fff;
-    font-weight: bold; cursor: pointer; font-size: 10px; text-transform: uppercase;
-    transition: background 0.15s;
+    flex: 1; border: 2px solid #333; background: #111;
+    color: #aaa; font-weight: bold; cursor: pointer; font-size: 9px;
+    text-transform: uppercase; padding: 8px 4px; border-radius: 10px;
+    transition: all 0.2s; letter-spacing: 0.5px;
+    max-width: 120px; font-family: inherit;
 }
-.n-btn.act { background: var(--cg); color: #000; }
-.bt-battle { color: #ff0 !important; background: #300 !important; }
+.n-btn:hover { border-color: #666; color: #fff; transform: translateY(-2px); }
+.n-btn.act {
+    background: var(--cg); color: #000; border-color: var(--cg);
+    box-shadow: 0 0 15px rgba(255,215,0,0.4); font-size: 10px;
+}
+.bt-battle {
+    color: #ff0 !important; background: #300 !important;
+    border-color: var(--nr) !important; animation: battlePulse 2s infinite;
+}
+.bt-battle.act { background: var(--nr) !important; color: #fff !important; border-color: #fff !important; }
+.bt-battle:hover { box-shadow: 0 0 20px var(--nr); }
+@keyframes battlePulse {
+    0%, 100% { box-shadow: 0 0 5px var(--nr); }
+    50% { box-shadow: 0 0 20px var(--nr), 0 0 40px var(--nr); }
+}
 
 /* === СТАТЫ === */
 .stats-panel {
-    position: fixed; bottom: 85px; left: 50%; transform: translateX(-50%);
-    display: flex; gap: 15px; z-index: 500;
+    position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 10px; z-index: 500;
 }
 .st-box {
-    background: #1a0000; border: 3px double var(--cg);
-    padding: 5px 15px; text-align: center; min-width: 100px; font-size: 10px;
+    background: #111; border: 2px solid #333; border-radius: 8px;
+    padding: 5px 14px; text-align: center; min-width: 100px; font-size: 9px;
+    color: #aaa; transition: all 0.2s;
 }
+.st-box:hover { border-color: var(--cg); color: #fff; }
 
 /* === ГЕРОИ === */
 .hero-buttons {
-    position: fixed; bottom: 80px; right: 170px;
+    position: fixed; bottom: 85px; right: 170px;
     display: flex; gap: 8px; z-index: 5000;
 }
 .hero-btn {
     border-radius: 50%; width: 45px; height: 45px;
-    border: none; cursor: pointer; font-size: 22px;
-    transition: transform 0.15s;
+    border: 2px solid #333; cursor: pointer; font-size: 22px;
+    transition: all 0.2s; box-shadow: 3px 3px 8px rgba(0,0,0,0.6);
 }
-.hero-btn:hover { transform: scale(1.15); }
+.hero-btn:hover { transform: scale(1.15) translateY(-3px); border-color: var(--cg); }
 .hb-gold { background: gold; }
 .hb-brown { background: brown; }
 .hb-grey { background: grey; }
