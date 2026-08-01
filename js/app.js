@@ -183,66 +183,56 @@ const LI_PERSONA = `Ты — старик Ли (老李), китаец 70 лет,
 КОНТЕКСТ: Ты находишься в игре "PALERMO DRAGON 2000". Вокруг тебя: Чен (босс), Гас (толстый, любит рамен), Тад (кореец с АК-47), Хрыч (старый враг), Маг (гадалка). Игрок — твой друг лаовай, пришёл к тебе поговорить.`;
 
 async function callAI(systemPrompt, userPrompt) {
-    if (!liChecked) { liChecked = true; checkLiOnline(); }
     if (!liOnline) return null;
+    let prompt = `${systemPrompt}\n\nПользователь: ${userPrompt}\nЛи:`;
     try {
         let ctrl = new AbortController();
-        let to = setTimeout(() => ctrl.abort(), 12000);
-        let resp = await fetch(AI_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                messages: [
-                    { role: 'system', content: systemPrompt },
-                    { role: 'user', content: userPrompt }
-                ],
-                model: 'openai',
-                seed: Math.floor(Math.random() * 1000000)
-            }),
+        let to = setTimeout(() => ctrl.abort(), 10000);
+        let resp = await fetch(AI_URL + encodeURIComponent(prompt), {
+            method: 'GET',
             signal: ctrl.signal
         });
         clearTimeout(to);
-        if (!resp.ok) throw new Error('status ' + resp.status);
-        let text = await resp.text();
-        if (text && text.length > 5) {
-            liOnline = true; updateLiStatus();
-            return text.trim();
+        if (resp.ok) {
+            let text = await resp.text();
+            if (text && text.length > 3) { liOnline = true; updateLiStatus(); return text.trim(); }
         }
-        return null;
-    } catch (e) {
-        liOnline = false; updateLiStatus();
-        return null;
-    }
+    } catch (e) {}
+    // fallback: try POST
+    try {
+        let ctrl = new AbortController();
+        let to = setTimeout(() => ctrl.abort(), 8000);
+        let resp = await fetch(AI_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: prompt,
+            signal: ctrl.signal
+        });
+        clearTimeout(to);
+        if (resp.ok) {
+            let text = await resp.text();
+            if (text && text.length > 3) { liOnline = true; updateLiStatus(); return text.trim(); }
+        }
+    } catch (e) {}
+    liOnline = false; updateLiStatus();
+    return null;
 }
 
 async function checkLiOnline() {
     try {
         let ctrl = new AbortController();
-        let to = setTimeout(() => { ctrl.abort(); liOnline = false; updateLiStatus(); }, 5000);
-        let resp = await fetch(AI_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                messages: [
-                    { role: 'system', content: 'reply with just: ok' },
-                    { role: 'user', content: 'hi' }
-                ],
-                model: 'openai'
-            }),
-            signal: ctrl.signal
-        });
+        let to = setTimeout(() => { ctrl.abort(); liOnline = false; }, 4000);
+        let resp = await fetch(AI_URL + 'hi', { method: 'GET', signal: ctrl.signal });
         clearTimeout(to);
         liOnline = resp.ok;
-    } catch (e) {
-        liOnline = false;
-    }
+    } catch (e) { liOnline = false; }
     updateLiStatus();
 }
 
 function updateLiStatus() {
     let s = document.getElementById('li-status');
     if (s) {
-        if (liOnline) { s.innerText = 'AI-МУДРЕЦ: онлайн'; s.className = 'li-status online'; }
+        if (liOnline) { s.innerText = 'AI: онлайн'; s.className = 'li-status online'; }
         else { s.innerText = 'AI: офлайн (локальный режим)'; s.className = 'li-status offline'; }
     }
 }
@@ -307,6 +297,7 @@ function getFallbackResponse(type, userMsg) {
 
 async function sendLi() {
     if (liBusy) return;
+    if (!liChecked) { liChecked = true; checkLiOnline(); }
     let inp = document.getElementById('li-input');
     let text = inp.value.trim();
     if (!text) return;
