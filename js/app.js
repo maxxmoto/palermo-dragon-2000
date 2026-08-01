@@ -13,7 +13,7 @@ let rck, rt, ri, rCombo = 0, rComboTimer;
 let akc, akt, ai, as, akLost = false;
 let ct = 0, bribe = false, fartFreq = 90000, muted = false, audioReady = false;
 let pop = 1567890123, sneak = 0;
-let liBusy = false;
+let liBusy = false, liOnline = true, liChecked = false;
 
 const TRACKS = ['assets/utro.mp3', 'assets/rap.mp3', 'assets/trd.mp3'];
 const TNAMES = { 'utro.mp3': 'УТРО', 'rap.mp3': 'РЭП', 'trd.mp3': 'КИТАЙСКАЯ КЛАССИКА' };
@@ -141,11 +141,14 @@ function showW(id) {
         document.getElementById(w).style.display = 'none';
     });
     document.getElementById(id).style.display = 'flex';
-    if (id === 'w-li') setTimeout(() => {
-        let c = document.getElementById('li-chat');
-        c.scrollTop = c.scrollHeight;
-        document.getElementById('li-input').focus();
-    }, 100);
+    if (id === 'w-li') {
+        setTimeout(() => {
+            let c = document.getElementById('li-chat');
+            c.scrollTop = c.scrollHeight;
+            document.getElementById('li-input').focus();
+            if (!liChecked) { liChecked = true; checkLiOnline(); } else updateLiStatus();
+        }, 100);
+    }
 }
 
 function hideW(id) { document.getElementById(id).style.display = 'none'; }
@@ -179,8 +182,12 @@ const LI_PERSONA = `Ты — старик Ли (老李), китаец 70 лет,
 КОНТЕКСТ: Ты находишься в игре "PALERMO DRAGON 2000". Вокруг тебя: Чен (босс), Гас (толстый, любит рамен), Тад (кореец с АК-47), Хрыч (старый враг), Маг (гадалка). Игрок — твой друг лаовай, пришёл к тебе поговорить.`;
 
 async function callHF(prompt) {
+    if (!liChecked) { liChecked = true; checkLiOnline(); }
+    if (!liOnline) return null;
     try {
         let fullPrompt = `<s>[INST] ${LI_PERSONA}\n\n${prompt} [/INST]`;
+        let ctrl = new AbortController();
+        let to = setTimeout(() => ctrl.abort(), 8000);
         let resp = await fetch(`https://api-inference.huggingface.co/models/${HF_MODEL}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -188,38 +195,104 @@ async function callHF(prompt) {
                 inputs: fullPrompt,
                 parameters: { max_new_tokens: 120, temperature: 0.85, top_p: 0.9, return_full_text: false },
                 options: { wait_for_model: true }
-            })
+            }),
+            signal: ctrl.signal
         });
+        clearTimeout(to);
         if (resp.status === 503) return null;
-        if (!resp.ok) throw new Error('API error ' + resp.status);
+        if (!resp.ok) throw new Error('status ' + resp.status);
         let data = await resp.json();
         let text = Array.isArray(data) ? data[0].generated_text : data.generated_text;
+        if (text) { liOnline = true; updateLiStatus(); }
         return text ? text.trim() : null;
     } catch (e) {
+        liOnline = false; updateLiStatus();
         return null;
     }
 }
 
-function getFallbackResponse(type) {
+async function checkLiOnline() {
+    try {
+        let ctrl = new AbortController();
+        let to = setTimeout(() => { ctrl.abort(); liOnline = false; updateLiStatus(); }, 5000);
+        await fetch(`https://api-inference.huggingface.co/models/${HF_MODEL}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ inputs: 'hi', parameters: { max_new_tokens: 1 } }),
+            signal: ctrl.signal
+        });
+        clearTimeout(to);
+        liOnline = true;
+    } catch (e) {
+        liOnline = false;
+    }
+    updateLiStatus();
+}
+
+function updateLiStatus() {
+    let s = document.getElementById('li-status');
+    if (s) {
+        if (liOnline) { s.innerText = 'AI-МУДРЕЦ: онлайн'; s.className = 'li-status'; }
+        else { s.innerText = 'AI: офлайн (локальный режим)'; s.className = 'li-status offline'; }
+    }
+}
+
+function getFallbackResponse(type, userMsg) {
     const jokes = [
-        'Ха! Рис сегодня как жена Чена — то взлетит, то упадёт! Цена сильно скачет, лаовай.',
-        'Слушай, почему юань круглый? Чтобы катился от тебя подальше! Сейхо шутка, да?',
-        'В Шанхае говорили: лучше иметь сто юаней в руке, чем тысячу в мечтах. Но ты всё равно бедный.',
-        'Знаешь, почему Чен всегда впереди? Потому что ветер дует ему в спину. А тебе — в лицо!'
+        'Ха! Рис сегодня как курс юаня — то вверх, то вниз, а в итоге всё равно к ужину подгорел. Сейхо шутка, да?',
+        'Слушай, почему юань круглый? Чтобы катился от тебя подальше! Но ты не плачь — у Ли есть запасной.',
+        'В Шанхае говорили: лучше сто юаней в руке, чем тысяча в мечтах. А ты и ста не держал, лаовай!',
+        'Знаешь, почему Чен всегда впереди? Ветер дует ему в спину. А тебе — прямо в лицо. Но это закаляет!',
+        'Однажды я купил акции, а они упали. Потом купил рис — он сгорел. Теперь покупаю только лапшу. Надёжно.',
+        'Лаовай, твои деньги как вода в Янцзы — текут, текут, и нет их. Но ты не грусти — у Чена всегда можно занять!',
+        'Старая китайская мудрость: если у тебя нет юаня — ты бедный. Если у тебя есть юань — ты тоже бедный, но весёлый.'
     ];
     const stories = [
-        'В 1985 году я торговал рисом на набережной Вайтань. Пришёл американец — хотел купить весь склад. Я сказал: "лаовай, рис не продаётся, рис — это душа!" Он ушёл, а рис на следующий день подорожал вдвое.',
-        'Мой дед говорил: "Ли, деньги как вода в Янцзы — сегодня здесь, завтра в море." Я не понял тогда. Теперь понимаю — он просто проиграл всё в маджонг.',
-        'Однажды Хрыч пытался обмануть Чена. Чен ничего не сказал. Просто улыбнулся. На следующий день Хрыч обнаружил, что его лапшичная принадлежит... Чену. Так ведётся бизнес.'
+        'В 1985 я торговал рисом на набережной Вайтань. Пришёл американец — хотел купить весь склад за доллары. Я сказал: "Лаовай, рис не продаётся, рис — это душа!" На следующий день рис подорожал вдвое. Американец вернулся с чемоданом денег — я продал. Бизнес есть бизнес.',
+        'Мой дед говорил: "Ли, деньги как облака над Шанхаем — сегодня густые, завтра рассеялись." Я не понимал. Потом он проиграл всё в маджонг — и я понял.',
+        'Хрыч однажды пытался обмануть Чена — поставил фальшивые весы для риса. Чен улыбнулся, ничего не сказал. На следующий день лавка Хрыча принадлежала Чену. За копейки. Вот так ведётся бизнес в Шанхае.',
+        'Гас в молодости был худым. Потом открыл лапшичную. Теперь он — два человека. Лапша меняет судьбу, лаовай.',
+        'Тад приехал из Кореи с одним АК-47 и мечтой. Теперь у него два АК-47. Мечта сбылась.',
+        'В 1992 я видел, как Чен пукнул на переговорах с якудза. Все замолчали. Чен сказал: "Это аргумент." Сделка прошла успешно.'
     ];
     const bribes = [
-        'Ох, лаовай, это хорошая взятка. Ли тебя уважает.',
-        'Цянь любит тишину. Ли будет молчать как рыба.',
-        'С такими деньгами ты — почётный китаец!'
+        'Ох, лаовай, хорошая взятка. Ли будет молчать как рыба в мутной воде. Никто не узнает.',
+        'Цянь любит тишину. А тишина стоит денег. Ты заплатил — теперь тишина.',
+        'С такими деньгами ты не лаовай — ты почти китаец! Почти.',
+        'Ли уважает щедрых людей. Теперь я расскажу тебе секрет... но за дополнительные 5 тысяч.',
+        'Взятка принята. Если кто спросит — ты был со мной весь вечер. Мы ели рис и обсуждали философию.'
     ];
+    const chatReplies = [
+        (m) => m.includes('рис') ? 'Рис — это не просто еда, это валюта. Когда юань падает, рис растёт. Инвестируй с умом, лаовай.' : null,
+        (m) => m.match(/деньги|юан|кэш|бабл|зарабо/i) ? 'Деньги как птица — сегодня здесь, завтра улетела. Надо строить клетку. Клетка — это бизнес.' : null,
+        (m) => m.match(/чен|босс/i) ? 'Чен — великий человек. Его пук стоит дороже, чем твоя месячная зарплата. Уважай Чена.' : null,
+        (m) => m.match(/хрыч|дед|враг/i) ? 'Хрыч? Ха! Этот старый пень думает, что он конкурент. Но ветер дует не в его сторону. Чен всё решит.' : null,
+        (m) => m.match(/гас|рамен|лапш/i) ? 'Гас — хороший человек. Толстый, но хороший. Его рамен — лучшее вложение после риса.' : null,
+        (m) => m.match(/привет|здрав|хай|hi/i) ? 'Здравствуй, лаовай. Ли рад тебя видеть. Принёс деньги или просто поболтать?' : null,
+        (m) => m.match(/как дела/i) ? 'Дела как юань на бирже — скачут. Но Ли не жалуется. Ли философ.' : null,
+        (m) => m.match(/что купить|инвести|совет/i) ? 'Покупай рис, когда он дёшев. Продавай, когда дорог. Но никогда не продавай душу — она неликвидная.' : null,
+        (m) => m.match(/спасибо|благодар/i) ? 'Сесе, лаовай. Благодарность — лучшая валюта. После юаня, конечно.' : null,
+        (m) => m.match(/пока|прощай|ухожу/i) ? 'Иди с миром, лаовай. И помни: удача любит тех, кто делится с Ли.' : null
+    ];
+
     if (type === 'joke') return jokes[Math.floor(Math.random() * jokes.length)];
     if (type === 'story') return stories[Math.floor(Math.random() * stories.length)];
-    return bribes[Math.floor(Math.random() * bribes.length)];
+    if (type === 'bribe') return bribes[Math.floor(Math.random() * bribes.length)];
+    if (userMsg) {
+        for (let r of chatReplies) {
+            let res = r(userMsg);
+            if (res) return res;
+        }
+        const generic = [
+            'Ли понимает. Но не до конца. Объясни как для старого китайца.',
+            'Мудрые слова, лаовай. Но мудрость без денег — просто слова.',
+            'Хм, интересно. Но в Шанхае мы говорим: меньше слов — больше юаней.',
+            'Ли задумался. Это бывает редко, значит ты сказал что-то важное.',
+            'Твои слова как шёлк — гладкие и дорогие. Но что под ними?'
+        ];
+        return generic[Math.floor(Math.random() * generic.length)];
+    }
+    return 'Ли не понял, но это не страшно. Ли и не обязан всё понимать — он просто мудрый.';
 }
 
 async function sendLi() {
@@ -232,18 +305,18 @@ async function sendLi() {
     addLiMsg('Вы: ' + text, 'li-msg-user');
     setLiTyping(true);
 
-    let prompt = `Игрок говорит: "${text}". Ответь в стиле старого китайского мудреца, коротко.`;
+    let prompt = `Игрок говорит: "${text}". Ответь в стиле старого китайского мудреца, коротко, 1-3 предложения.`;
     let reply = await callHF(prompt);
     setLiTyping(false);
 
     if (reply) {
         addLiMsg('👲: ' + reply, 'li-msg-bot');
-        S.liHistory = (S.liHistory || []).slice(-20);
-        S.liHistory.push({ user: text, bot: reply });
-        localStorage.setItem('pdm_dragon_v3', JSON.stringify(S));
     } else {
-        addLiMsg('👲: ' + getFallbackResponse('joke'), 'li-msg-bot');
+        addLiMsg('👲: ' + getFallbackResponse('chat', text.toLowerCase()), 'li-msg-bot');
     }
+    S.liHistory = (S.liHistory || []).slice(-20);
+    S.liHistory.push({ user: text, bot: reply || '' });
+    localStorage.setItem('pdm_dragon_v3', JSON.stringify(S));
     liBusy = false;
     inp.focus();
 }
@@ -253,17 +326,16 @@ async function quickLi(type) {
     liBusy = true;
     setLiTyping(true);
 
-    let prompt, cost = 0, earn = 0;
+    let prompt, cost = 0;
     if (type === 'joke') {
         if (S.cash < 2000) { setLiTyping(false); liBusy = false; msg("МАЛО ¥!"); return; }
         cost = 2000;
         prompt = 'Расскажи смешную короткую шутку на тему денег, риса или Китая. Одно предложение.';
     } else if (type === 'story') {
-        prompt = 'Расскажи короткую историю из твоей жизни в Шанхае. 2-3 предложения.';
+        prompt = 'Расскажи короткую историю из твоей жизни в Шанхае про бизнес или Чена. 2-3 предложения.';
     } else {
         if (S.cash < 10000) { setLiTyping(false); liBusy = false; msg("МАЛО ¥!"); return; }
-        cost = 10000;
-        bribe = true;
+        cost = 10000; bribe = true;
         prompt = 'Тебе дали взятку. Поблагодари игрока в своём стиле. Одно предложение.';
     }
 
@@ -277,7 +349,6 @@ async function quickLi(type) {
     }
 
     if (cost > 0) { S.cash -= cost; S.stats.totalSpent += cost; }
-    if (earn > 0) { S.cash += earn; S.stats.totalEarned += earn; }
     up();
     liBusy = false;
 }

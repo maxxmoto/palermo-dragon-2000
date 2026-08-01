@@ -28,7 +28,6 @@ body {
 .ao-content { text-align: center; }
 .ao-content p { margin: 15px 0; }
 @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
-@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
 
 /* === УВЕДОМЛЕНИЯ === */
 #notify-box {
@@ -142,28 +141,28 @@ body {
 
 /* === НАВИГАЦИЯ === */
 nav {
-    display: flex; gap: 8px; padding: 0 10px;
-    height: 56px; position: sticky; bottom: 0; z-index: 1000;
+    display: flex; gap: 10px; padding: 6px 12px;
+    height: 66px; position: sticky; bottom: 0; z-index: 1000;
     align-items: center; justify-content: center;
 }
 .n-btn {
     flex: 1; border: 2px solid #333; background: #111;
-    color: #aaa; font-weight: bold; cursor: pointer; font-size: 9px;
-    text-transform: uppercase; padding: 8px 4px; border-radius: 10px;
+    color: #aaa; font-weight: bold; cursor: pointer; font-size: 11px;
+    text-transform: uppercase; padding: 12px 8px; border-radius: 14px;
     transition: all 0.2s; letter-spacing: 0.5px;
-    max-width: 120px; font-family: inherit;
+    max-width: 130px; font-family: inherit; text-align: center;
 }
 .n-btn:hover { border-color: #666; color: #fff; transform: translateY(-2px); }
 .n-btn.act {
     background: var(--cg); color: #000; border-color: var(--cg);
-    box-shadow: 0 0 15px rgba(255,215,0,0.4); font-size: 10px;
+    box-shadow: 0 0 18px rgba(255,215,0,0.5); font-size: 12px;
 }
 .bt-battle {
     color: #ff0 !important; background: #300 !important;
     border-color: var(--nr) !important; animation: battlePulse 2s infinite;
 }
 .bt-battle.act { background: var(--nr) !important; color: #fff !important; border-color: #fff !important; }
-.bt-battle:hover { box-shadow: 0 0 20px var(--nr); }
+.bt-battle:hover { box-shadow: 0 0 22px var(--nr); }
 @keyframes battlePulse {
     0%, 100% { box-shadow: 0 0 5px var(--nr); }
     50% { box-shadow: 0 0 20px var(--nr), 0 0 40px var(--nr); }
@@ -171,7 +170,7 @@ nav {
 
 /* === СТАТЫ === */
 .stats-panel {
-    position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
+    position: fixed; bottom: 95px; left: 50%; transform: translateX(-50%);
     display: flex; gap: 10px; z-index: 500;
 }
 .st-box {
@@ -245,6 +244,10 @@ nav {
 .li-msg-bot { background: #1a1a00; border: 1px solid #444; align-self: flex-start; color: var(--cg); }
 .li-msg-user { background: #001a1a; border: 1px solid #0aa; align-self: flex-end; color: #0ff; }
 .li-msg-error { background: #1a0000; border: 1px solid #f00; color: #f88; align-self: center; font-size: 10px; }
+.li-status {
+    font-size: 9px; color: #888; text-align: center; margin-bottom: 4px;
+}
+.li-status.offline { color: var(--nr); }
 .li-typing {
     font-size: 10px; color: #666; text-align: left; padding: 2px 5px; font-style: italic;
 }
@@ -253,8 +256,7 @@ nav {
 .li-input-row { display: flex; gap: 5px; margin-bottom: 5px; }
 .li-input {
     flex: 1; background: #111; border: 1px solid #444; color: #fff;
-    padding: 6px 8px; font-size: 11px; font-family: inherit;
-    outline: none;
+    padding: 6px 8px; font-size: 11px; font-family: inherit; outline: none;
 }
 .li-input:focus { border-color: var(--cg); }
 .li-send {
@@ -385,3 +387,110 @@ nav {
 .biz-card .biz-icon { font-size: 36px; }
 .biz-card .biz-name { color: var(--cg); font-weight: bold; margin: 5px 0; }
 .biz-card .biz-num { color: var(--ng); font-size: 12px; }
+
+/* ================================================================ */
+/* ===================  МОБИЛЬНАЯ АДАПТАЦИЯ  ====================== */
+/* ================================================================ */
+
+/* Планшеты и маленькие экраны */
+@media (max-width: 900px) {
+    .side { display: none; }
+    .main { margin: 0; }
+    #player { right: 8px; top: 6px; padding: 5px; gap: 4px; border-radius: 4px; }
+    #player .pl-circle { width: 20px; height: 20px; font-size: 10px; }
+    #player .pl-vol { width: 30px; }
+    .display-case { width: 60px; }
+    #t-name { font-size: 8px; }
+    .hero-buttons { bottom: 80px; right: 8px; gap: 5px; }
+    .hero-btn { width: 38px; height: 38px; font-size: 18px; }
+    .stats-panel { bottom: 80px; gap: 6px; }
+    .st-box { padding: 3px 10px; min-width: 80px; font-size: 8px; }
+    .logo { font-size: 22px; }
+    .balance { font-size: 24px; }
+    .ticker { font-size: 14px; }
+    .content { padding: 12px; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+    .card { padding: 10px; font-size: 10px; }
+    .biz-card { padding: 10px; }
+    .biz-card .biz-icon { font-size: 28px; }
+    .win { right: 8px; width: 260px; bottom: 135px; }
+    .win-li { width: 320px; max-height: 400px; bottom: 110px; }
+    .li-chat { height: 160px; }
+    .full { border-width: 10px; }
+    #b-timer { font-size: 50px; }
+    .boss-img { width: 200px; }
+    .food-img { width: 200px; }
+    .ramen-timer { font-size: 36px; }
+    .ramen-progress-wrap { width: 240px; }
+    .ak-zone { width: 95%; height: 65%; }
+    .ak-obj { width: 80px; }
+    .bomb-obj { width: 60px; }
+    .trade-box { min-width: auto; padding: 20px; }
+}
+
+/* Телефоны */
+@media (max-width: 500px) {
+    .logo { font-size: 18px; padding: 6px 0; }
+    .balance { font-size: 20px; }
+    .ticker-wrap { height: 24px; }
+    .ticker { font-size: 12px; line-height: 24px; }
+
+    #player { top: auto; bottom: 145px; right: auto; left: 6px; padding: 4px; gap: 3px; }
+    #player .pl-circle { width: 18px; height: 18px; font-size: 9px; }
+    #player .pl-vol { width: 24px; }
+    .display-case { width: 50px; height: 14px; }
+    #t-name { font-size: 7px; }
+    .pl-label { font-size: 6px; }
+
+    .hero-buttons { bottom: 145px; right: 6px; gap: 4px; }
+    .hero-btn { width: 34px; height: 34px; font-size: 16px; }
+
+    .stats-panel { bottom: 130px; gap: 4px; }
+    .st-box { padding: 2px 8px; min-width: 65px; font-size: 7px; }
+
+    .content { padding: 8px; gap: 6px; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
+    .card { padding: 8px; font-size: 9px; }
+    .biz-card { padding: 8px; }
+    .biz-card .biz-icon { font-size: 24px; }
+    .biz-card .biz-name { font-size: 10px; }
+
+    nav { height: 60px; padding: 4px 6px; gap: 5px; }
+    .n-btn { font-size: 9px; padding: 8px 4px; border-radius: 10px; border-width: 1.5px; max-width: 100px; }
+    .n-btn.act { font-size: 9px; }
+
+    .win { right: 4px; width: 240px; bottom: 150px; padding: 10px; }
+    .win-li { width: 280px; max-height: 350px; bottom: 130px; }
+    .li-chat { height: 130px; }
+    .li-msg { font-size: 10px; padding: 4px 8px; }
+    .li-input { font-size: 10px; }
+    .li-send { font-size: 12px; padding: 4px 10px; }
+
+    .full { border-width: 8px; }
+    #b-timer { font-size: 40px; }
+    #bomb-body { padding: 12px; margin-bottom: 10px; }
+    .battle-hp-row { gap: 20px; }
+    .hp-bar { width: 100px; height: 16px; }
+    .boss-img { width: 160px; }
+    .food-img { width: 160px; }
+    .ramen-timer { font-size: 28px; }
+    .ramen-progress-wrap { width: 180px; height: 16px; }
+    .gus-scare { width: 120px; }
+    .win-title { font-size: 32px; }
+    .btn-win, .btn-retry { padding: 10px 20px; font-size: 14px; }
+    .btn-close-modal { top: 15px; right: 15px; padding: 4px 8px; font-size: 12px; }
+    .ak-obj { width: 60px; }
+    .bomb-obj { width: 45px; }
+    .trade-box { min-width: auto; width: 90%; padding: 15px; }
+    .qty-input { width: 40px; font-size: 16px; }
+}
+
+/* Очень маленькие */
+@media (max-width: 360px) {
+    nav { height: 52px; padding: 3px 4px; gap: 3px; }
+    .n-btn { font-size: 7px; padding: 6px 2px; border-radius: 8px; }
+    .stats-panel { bottom: 120px; gap: 2px; }
+    .st-box { padding: 2px 5px; min-width: 55px; font-size: 6px; }
+    .hero-buttons { bottom: 135px; }
+    #player { bottom: 135px; }
+    .win { width: 220px; right: 2px; }
+    .win-li { width: 260px; }
+}
