@@ -18,6 +18,7 @@ let liBusy = false, liOnline = true, liChecked = false;
 const TRACKS = ['assets/utro.mp3', 'assets/rap.mp3', 'assets/trd.mp3'];
 const TNAMES = { 'utro.mp3': 'УТРО', 'rap.mp3': 'РЭП', 'trd.mp3': 'КИТАЙСКАЯ КЛАССИКА' };
 const HF_MODEL = 'mistralai/Mistral-7B-Instruct-v0.3';
+const AI_URL = 'https://text.pollinations.ai/';
 
 let player, eatSound, akSound, fartSound, audioCtx;
 
@@ -181,30 +182,33 @@ const LI_PERSONA = `Ты — старик Ли (老李), китаец 70 лет,
 
 КОНТЕКСТ: Ты находишься в игре "PALERMO DRAGON 2000". Вокруг тебя: Чен (босс), Гас (толстый, любит рамен), Тад (кореец с АК-47), Хрыч (старый враг), Маг (гадалка). Игрок — твой друг лаовай, пришёл к тебе поговорить.`;
 
-async function callHF(prompt) {
+async function callAI(systemPrompt, userPrompt) {
     if (!liChecked) { liChecked = true; checkLiOnline(); }
     if (!liOnline) return null;
     try {
-        let fullPrompt = `<s>[INST] ${LI_PERSONA}\n\n${prompt} [/INST]`;
         let ctrl = new AbortController();
-        let to = setTimeout(() => ctrl.abort(), 8000);
-        let resp = await fetch(`https://api-inference.huggingface.co/models/${HF_MODEL}`, {
+        let to = setTimeout(() => ctrl.abort(), 12000);
+        let resp = await fetch(AI_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                inputs: fullPrompt,
-                parameters: { max_new_tokens: 120, temperature: 0.85, top_p: 0.9, return_full_text: false },
-                options: { wait_for_model: true }
+                messages: [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: userPrompt }
+                ],
+                model: 'openai',
+                seed: Math.floor(Math.random() * 1000000)
             }),
             signal: ctrl.signal
         });
         clearTimeout(to);
-        if (resp.status === 503) return null;
         if (!resp.ok) throw new Error('status ' + resp.status);
-        let data = await resp.json();
-        let text = Array.isArray(data) ? data[0].generated_text : data.generated_text;
-        if (text) { liOnline = true; updateLiStatus(); }
-        return text ? text.trim() : null;
+        let text = await resp.text();
+        if (text && text.length > 5) {
+            liOnline = true; updateLiStatus();
+            return text.trim();
+        }
+        return null;
     } catch (e) {
         liOnline = false; updateLiStatus();
         return null;
@@ -215,14 +219,20 @@ async function checkLiOnline() {
     try {
         let ctrl = new AbortController();
         let to = setTimeout(() => { ctrl.abort(); liOnline = false; updateLiStatus(); }, 5000);
-        await fetch(`https://api-inference.huggingface.co/models/${HF_MODEL}`, {
+        let resp = await fetch(AI_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ inputs: 'hi', parameters: { max_new_tokens: 1 } }),
+            body: JSON.stringify({
+                messages: [
+                    { role: 'system', content: 'reply with just: ok' },
+                    { role: 'user', content: 'hi' }
+                ],
+                model: 'openai'
+            }),
             signal: ctrl.signal
         });
         clearTimeout(to);
-        liOnline = true;
+        liOnline = resp.ok;
     } catch (e) {
         liOnline = false;
     }
@@ -232,7 +242,7 @@ async function checkLiOnline() {
 function updateLiStatus() {
     let s = document.getElementById('li-status');
     if (s) {
-        if (liOnline) { s.innerText = 'AI-МУДРЕЦ: онлайн'; s.className = 'li-status'; }
+        if (liOnline) { s.innerText = 'AI-МУДРЕЦ: онлайн'; s.className = 'li-status online'; }
         else { s.innerText = 'AI: офлайн (локальный режим)'; s.className = 'li-status offline'; }
     }
 }
@@ -305,8 +315,7 @@ async function sendLi() {
     addLiMsg('Вы: ' + text, 'li-msg-user');
     setLiTyping(true);
 
-    let prompt = `Игрок говорит: "${text}". Ответь в стиле старого китайского мудреца, коротко, 1-3 предложения.`;
-    let reply = await callHF(prompt);
+    let reply = await callAI(LI_PERSONA, text);
     setLiTyping(false);
 
     if (reply) {
@@ -339,7 +348,7 @@ async function quickLi(type) {
         prompt = 'Тебе дали взятку. Поблагодари игрока в своём стиле. Одно предложение.';
     }
 
-    let reply = await callHF(prompt);
+    let reply = await callAI(LI_PERSONA, prompt);
     setLiTyping(false);
 
     if (reply) {
