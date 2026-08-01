@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PALERMO DRAGON 2000: LEGEND</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="smog-overlay"></div>
+<div id="notify-box"></div>
+
+<!-- ОВЕРЛЕЙ ДЛЯ РАЗБЛОКИРОВКИ ЗВУКА -->
+<div id="audio-overlay" onclick="unlockAudio()">
+    <div class="ao-content">
+        <div class="logo" style="font-size:22px">PALERMO DRAGON 2000</div>
+        <p style="font-size:14px; margin-bottom:20px;">КЛИКНИ ЧТОБЫ ВОЙТИ В ИГРУ</p>
+        <div style="font-size:40px; animation: pulse 1.5s infinite">&#128266;</div>
+    </div>
+</div>
+
+<!-- МАГНИТОЛА -->
+<div id="player">
+    <button onclick="chTrk(-1)" class="pl-circle">&#171;</button>
+    <div class="pl-center">
+        <div class="pl-label">МАГНИТОЛА</div>
+        <div class="display-case"><span id="t-name">ВЫКЛ</span></div>
+        <input type="range" id="vol" min="0" max="1" step="0.05" value="0.5" class="pl-vol">
+    </div>
+    <button onclick="tglPl()" id="pl-btn" class="pl-circle">&#9654;</button>
+    <button onclick="chTrk(1)" class="pl-circle">&#187;</button>
+    <button onclick="toggleMute()" id="mute-btn" class="pl-circle" title="Звук">&#128264;</button>
+</div>
+
+<!-- ЛЕВАЯ ПАНЕЛЬ -->
+<div class="side left">
+    <div class="portrait-wrap">
+        <div id="gas-cloud"></div>
+        <img src="assets/tipjpg.jpg" alt="Чен" class="portrait">
+    </div>
+    <b class="chen-label">ЧЕН</b>
+    <div class="wanted">ЖУЛИКИ</div>
+    <div id="h-list">
+        <div class="h-mini"><img src="assets/lee.jfif" alt="ЛИ"><b>ЛИ</b></div>
+        <div class="h-mini"><img src="assets/tipjpg.jpg" alt="ЧЕН"><b>ЧЕН</b></div>
+        <div class="h-mini"><img src="assets/tolsty.jfif" alt="ГАС"><b>ГАС</b></div>
+        <div class="h-mini"><img src="assets/kimjfif.jfif" alt="ТАД"><b>ТАД</b></div>
+        <div class="h-mini"><img src="assets/dedbitva.jpg" alt="ХРЫЧ"><b>ХРЫЧ</b></div>
+        <div class="h-mini"><img src="assets/mag.jfif" alt="МАГ"><b>МАГ</b></div>
+    </div>
+</div>
+
+<!-- ОСНОВНАЯ ЗОНА -->
+<div class="main">
+    <header>
+        <div class="logo">PALERMO DRAGON 2000</div>
+        <div id="cash" class="balance">100,000 &#165;</div>
+    </header>
+
+    <div class="ticker-wrap">
+        <div id="t-bar" class="ticker">+++ КУРС ЮАНЯ СТАБИЛЕН --- БЕЙ ХРЫЧА ЗА КЭШ --- ГАС ТРИТ ЖДЕТ РАМЕН --- ЧЕН ОПЯТЬ ПУКНУЛ --- </div>
+    </div>
+
+    <div id="mkt" class="content active"></div>
+    <div id="vip" class="content"></div>
+    <div id="inv" class="content"></div>
+    <div id="ach" class="content"></div>
+    <div id="biz" class="content"></div>
+
+    <div class="stats-panel">
+        <div class="st-box">НАСЕЛЕНИЕ:<br><span id="p-cnt">1,567,890,123</span></div>
+        <div class="st-box">КРОССОВКИ:<br><span id="s-cnt">0</span></div>
+        <div class="st-box">ДОХОД/С:<br><span id="i-rate">0</span></div>
+    </div>
+
+    <nav>
+        <button class="n-btn act" onclick="tab('mkt',this)">БАЗАР</button>
+        <button class="n-btn" onclick="tab('vip',this)">VIP</button>
+        <button class="n-btn" onclick="tab('inv',this)">СУНДУК</button>
+        <button class="n-btn" onclick="tab('ach',this)">МЕДАЛИ</button>
+        <button class="n-btn" onclick="tab('biz',this)">БИЗНЕС</button>
+        <button class="n-btn bt-battle" onclick="openBattle()">БИТВА</button>
+    </nav>
+</div>
+
+<!-- ГЕРОИ -->
+<div class="hero-buttons">
+    <button onclick="showW('w-li')" class="hero-btn hb-gold">&#128114;</button>
+    <button onclick="showW('w-gs')" class="hero-btn hb-brown">&#127831;</button>
+    <button onclick="showW('w-km')" class="hero-btn hb-grey">&#127894;</button>
+    <button onclick="showW('w-dice')" class="hero-btn hb-purple">&#127922;</button>
+</div>
+
+<!-- ЛИ: AI-ЧАТ -->
+<div id="w-li" class="win win-li">
+    <span class="close-x" onclick="hideW('w-li')">X</span>
+    <div class="li-header">
+        <img src="assets/lee.jfif" width="40" class="li-avatar" alt="ЛИ">
+        <div>
+            <b style="color:var(--cg); font-size:14px;">СТАРИК ЛИ</b>
+            <div style="font-size:9px; color:#888;">&#127760; AI-МУДРЕЦ</div>
+        </div>
+    </div>
+    <div id="li-chat" class="li-chat">
+        <div class="li-msg li-msg-bot">&#128114;: Здравствуй, лаовай. Ли слушает. Что надо?</div>
+    </div>
+    <div id="li-typing" class="li-typing" style="display:none">Ли думает<span class="dots">...</span></div>
+    <div class="li-input-row">
+        <input id="li-input" class="li-input" placeholder="Спроси у Ли..." maxlength="200" onkeydown="if(event.key==='Enter')sendLi()">
+        <button onclick="sendLi()" class="li-send">&#9654;</button>
+    </div>
+    <div class="li-actions">
+        <button onclick="quickLi('joke')" class="li-act">&#128514; ШУТКА (2к)</button>
+        <button onclick="quickLi('story')" class="li-act">&#128214; ИСТОРИЯ</button>
+        <button onclick="quickLi('bribe')" class="li-act li-act-bribe">&#128176; ВЗЯТКА (10к)</button>
+    </div>
+</div>
+
+<div id="w-dice" class="win">
+    <span class="close-x" onclick="hideW('w-dice')">X</span>
+    <img src="assets/mag.jfif" width="60" class="win-avatar" alt="МАГ">
+    <p>&#127922; УГАДАЙ (1-3)</p>
+    <div class="dice-btns">
+        <button onclick="playDice(1)" class="btn-dice">1</button>
+        <button onclick="playDice(2)" class="btn-dice">2</button>
+        <button onclick="playDice(3)" class="btn-dice">3</button>
+    </div>
+    <p id="dice-res">Ставка: 5,000 &#165;</p>
+</div>
+
+<div id="w-gs" class="win">
+    <span class="close-x" onclick="hideW('w-gs')">X</span>
+    <p>"ЖРИ РАМЕН!"</p>
+    <button onclick="gameR()" class="btn-ramen">&#127857; ПРИНЯТЬ</button>
+</div>
+
+<div id="w-km" class="win">
+    <span class="close-x" onclick="hideW('w-km')">X</span>
+    <p>"ЛОВИ АК!"</p>
+    <button onclick="gameA()" class="btn-ak">&#127681; СЛУЖУ!</button>
+</div>
+
+<!-- БИТВА -->
+<div id="m-btl" class="full">
+    <div id="bomb-body"><div id="b-timer">00:30</div></div>
+    <div class="battle-hp-row">
+        <div class="battle-side"><div>ВЫ</div><div class="hp-bar"><div id="u-hp-fill" class="hp-fill hp-green"></div></div><div id="u-hp-text" class="hp-val">200</div></div>
+        <div class="battle-side"><div>ХРЫЧ</div><div class="hp-bar"><div id="h-hp-fill" class="hp-fill hp-red"></div></div><div id="h-hp-text" class="hp-val">100</div></div>
+    </div>
+    <img src="assets/dedbitva.jpg" id="b-img" onclick="hitH()" class="boss-img" alt="ХРЫЧ">
+    <div id="b-win-scr" class="win-screen"><h1 class="win-title">ПОБЕДА!</h1><p id="b-bonus-text"></p><button onclick="getB()" class="btn-win">&#128176; ЗАБРАТЬ 10К</button></div>
+    <div id="b-lose-scr" class="win-screen lose"><h1 class="win-title lose-title">ПОТРАЧЕНО!</h1><p>ХРЫЧ тебя уделал...</p><button onclick="retryBattle()" class="btn-retry">&#128074; РЕВАНШ</button></div>
+    <button onclick="closeBattle()" class="btn-close-modal">&#10006;</button>
+</div>
+
+<!-- РАМЕН -->
+<div id="m-ram" class="full">
+    <h2 id="r-t" class="ramen-timer">40</h2>
+    <img src="assets/tolsty.jfif" id="gs-sc" class="gus-scare" alt="ГАС">
+    <img src="assets/food.jfif" onclick="eatR(event)" class="food-img" alt="РАМЕН">
+    <div class="ramen-progress-wrap"><div class="ramen-progress"><div id="r-f" class="ramen-fill"></div></div></div>
+    <div id="r-combo" class="combo-text"></div>
+    <div id="r-win-scr" class="win-screen"><img src="assets/tolsty.jfif" width="180" alt="ГАС"><h1>"ХОРОШО ПОШЛА!"</h1><p id="r-bonus-text"></p><button onclick="getR()" class="btn-win">ВЗЯТЬ 5К</button></div>
+    <button onclick="closeRamen()" class="btn-close-modal">&#10006;</button>
+</div>
+
+<!-- АК-47 -->
+<div id="m-ak" class="full">
+    <h2 class="ak-header">АК: <span id="ak-c">0</span>/10 | Т: <span id="ak-t">40</span></h2>
+    <div id="ak-z" class="ak-zone"></div>
+    <div id="ak-win-scr" class="win-screen"><h1>СЛУЖУ КОРЕЕ!</h1><button onclick="getAk()" class="btn-win">&#128176; ЗАБРАТЬ 7К</button></div>
+    <div id="ak-lose-scr" class="win-screen lose"><h1>БАБАХ!</h1><p>Подорвался на бомбе...</p><button onclick="retryAk()" class="btn-retry">&#128074; ЗАНОВО</button></div>
+    <button onclick="closeAk()" class="btn-close-modal">&#10006;</button>
+</div>
+
+<!-- ТОРГОВЛЯ -->
+<div id="m-trd" class="full-dim">
+    <div class="trade-box">
+        <h2 id="tr-n"></h2><div id="tr-p"></div>
+        <div class="qty-row">
+            <button onclick="chQ(-1)" class="tri-btn down"></button>
+            <input id="tr-q" value="1" readonly class="qty-input">
+            <button onclick="chQ(1)" class="tri-btn"></button>
+        </div>
+        <button onclick="confT()" class="btn-confirm">ПОДТВЕРДИТЬ</button>
+        <button onclick="closeTrade()" class="btn-cancel">ОТМЕНА</button>
+    </div>
+</div>
+
+<!-- БИЗНЕС -->
+<div id="m-biz" class="full-dim">
+    <div class="trade-box">
+        <h2 id="biz-name"></h2><p id="biz-desc"></p><p id="biz-income"></p><p id="biz-owned"></p>
+        <div class="qty-row">
+            <button onclick="chBizQ(-1)" class="tri-btn down"></button>
+            <input id="biz-qty" value="1" readonly class="qty-input">
+            <button onclick="chBizQ(1)" class="tri-btn"></button>
+        </div>
+        <button onclick="confirmBiz()" class="btn-confirm">КУПИТЬ</button>
+        <button onclick="closeBiz()" class="btn-cancel">ОТМЕНА</button>
+    </div>
+</div>
+
+<script src="js/app.js"></script>
+</body>
+</html>
